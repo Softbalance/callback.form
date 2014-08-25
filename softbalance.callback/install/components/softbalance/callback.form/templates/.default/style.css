@@ -1,0 +1,81 @@
+#callbackLink{
+
+}
+#callback_mask{
+	position:fixed;
+	width:100%;
+	height:100%;
+	background:rgba(0,0,0,0.5);
+	top:0;
+	left:0;
+	display:none;
+	z-index:1400;
+}
+#callbackForm{
+	display:none;
+	position:fixed;
+	top:50%;
+	left:50%;
+	background:white;
+	border:1px #999 solid;
+	border-radius:10px;
+	padding:20px;
+	width:320px;
+	min-height:280px;
+	margin-top:-160px;
+	margin-left:-180px;
+	z-index:1500;
+}
+#callbackForm>div{
+
+}
+#callbackForm>div>p{
+	color:red;
+	margin:5px;
+}
+#callbackForm h2{
+	margin:0;
+	font-size:18px;
+}
+#callbackForm p{
+	font-size:12px;
+	margin:0;
+}
+#callbackForm input,#callbackForm textarea{
+	display:block;
+	width:300px;
+	margin:10px 0;
+	padding:0 5px;
+	height:30px;
+	vertical-align:middle;
+}
+#callbackForm .error{
+	box-shadow:0 0 0 1px #f00;
+}
+#callbackForm input[type=text]{
+
+}
+#callbackForm textarea{
+	min-height:60px;
+	width:302px;
+	padding:5px;
+}
+#callbackForm input[type=submit]{
+	width:120px;
+	cursor:pointer;
+}
+#callbackForm .close{
+	position:absolute;
+	top:-10px;
+	right:-10px;
+	border:1px white solid;
+	background:black;
+	color:white;
+	border-radius:50%;
+	width:20px;
+	height:20px;
+	text-align:center;
+	line-height:20px;
+	font-size:12px;
+	cursor:pointer;
+}
