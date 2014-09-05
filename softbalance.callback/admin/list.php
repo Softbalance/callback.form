@@ -16,7 +16,7 @@ $listTableId = "tbl_softbalance_callback_list";
 $oSort = new CAdminSorting($listTableId, "ID", "asc");
 $arOrder = (strtoupper($by) === "ID"? array($by => $order): array($by => $order, "ID" => "ASC"));
 
-$adminList = new CAdminList($listTableId, $oSort);
+$lAdmin = new CAdminList($listTableId, $oSort);
 
 $arFilterFields = array(
 	"find_created_from",
@@ -24,7 +24,50 @@ $arFilterFields = array(
 	"find_user_id"
 );
 
-$adminList->InitFilter($arFilterFields);
+$lAdmin->InitFilter($arFilterFields);
+
+
+//echo "<pre>";
+//	print_r($_REQUEST);
+//	print_r(check_bitrix_sessid());
+//echo "</pre>";
+
+// Processing with actions
+if($lAdmin->EditAction()) {
+	foreach($FIELDS as $ID=>$arFields) {
+		if(!$lAdmin->IsUpdated($ID)) continue;
+		$ID = IntVal($ID);
+
+		if($_REQUEST["cancel"] == "Y") break;
+
+		if(isset($_REQUEST["save"]) && strlen($_REQUEST["save"])>0){
+			$result = \Softbalance\Callback\CallbackTable::update($ID,$arFields);
+
+			if($result->isSuccess())
+			{
+				$lAdmin->AddGroupError(GetMessage("rub_save_error"), $ID);
+			}
+			else
+			{
+				$message = $result->getErrorMessages();
+				$lAdmin->AddGroupError($result->getErrorMessages(), $ID);
+			}
+		}
+
+	}
+}
+
+if($arID = $lAdmin->GroupAction()){
+	foreach($arID as $ID) {
+		if (isset($_REQUEST['action']) && $_REQUEST['action_button'] === 'delete' && check_bitrix_sessid())
+		{
+			\Softbalance\Callback\CallbackTable::delete($ID);
+		}
+	}
+};
+
+
+
 
 $arFilter = array();
 
@@ -45,7 +88,7 @@ $myData = \Softbalance\Callback\CallbackTable::getList(
 $myData = new CAdminResult($myData, $listTableId);
 $myData->NavStart();
 
-$adminList->NavText($myData->GetNavPrint(GetMessage("MY_STAT_ADMIN_NAV")));
+$lAdmin->NavText($myData->GetNavPrint(GetMessage("MY_STAT_ADMIN_NAV")));
 
 $cols = \Softbalance\Callback\CallbackTable::getMap();
 $colHeaders = array();
@@ -58,15 +101,60 @@ foreach ($cols as $colId => $col)
 		"default" => true,
 	);
 }
-$adminList->AddHeaders($colHeaders);
+$lAdmin->AddHeaders($colHeaders);
 
-$visibleHeaderColumns = $adminList->GetVisibleHeaderColumns();
+
+
+
+
+
+$visibleHeaderColumns = $lAdmin->GetVisibleHeaderColumns();
 $arUsersCache = array();
+
+
+$status = array(
+	"new" => GetMessage("SB_CALLBACK_STATUS_NEW"),
+	"dialing" => GetMessage("SB_CALLBACK_STATUS_DIALING"),
+	"completed" => GetMessage("SB_CALLBACK_STATUS_COMPLETED"),
+);
 
 while ($arRes = $myData->GetNext())
 {
-	$row =& $adminList->AddRow($arRes["ID"], $arRes);
+	$arRes["STATUS"] = $status[$arRes["STATUS"]];
 
+	$row =& $lAdmin->AddRow($arRes["ID"], $arRes);
+
+
+	$StatusHTML = '<select name="FIELDS['.$arRes["ID"].'][STATUS]">';
+	foreach($status as $key=>$value){
+		$selected = "";
+		if($key == $arRes["~STATUS"])
+			$selected = "selected";
+
+		$StatusHTML .= '<option value="'.$key.'"'.$selected.'>'.$value.'</option>';
+	}
+	$StatusHTML .= '</select>';
+
+
+	$row->AddEditField("STATUS", $StatusHTML);
+
+	$row->AddViewField("ID", $arRes["ID"]);
+
+	$row->AddInputField("NAME",array("SIZE" => "30"));
+
+	$row->AddViewField("CREATED", CDatabase::FormatDate($f_DATETIME, "YYYY-MM-DD HH:MI:SS", CSite::GetDateFormat("FULL")));
+
+	$row->AddInputField("PHONE",array("SIZE" => "30"));
+
+	$sHTML = "<textarea cols='30' rows='4'name='FIELDS[".$arRes["ID"]."][USER_COMMENT]'>".$arRes["USER_COMMENT"]."</textarea>";
+	$row->AddEditField("USER_COMMENT", $sHTML);
+
+	$sHTML = "<textarea cols='30' rows='4'name='FIELDS[".$arRes["ID"]."][ADMIN_COMMENT]'>".$arRes["ADMIN_COMMENT"]."</textarea>";
+	$row->AddEditField("ADMIN_COMMENT", $sHTML);
+
+	//echo "<pre style='display: none'>";
+	//print_r($arRes);
+	//echo "</pre>";
 	$arActions = array();
 	$arActions[] = array(
 		"ICON" => "edit",
@@ -77,12 +165,12 @@ while ($arRes = $myData->GetNext())
 	$arActions[] = array(
 		"ICON" => "delete",
 		"TEXT" => GetMessage("DELETE"),
-		"ACTION" => "if(confirm('".GetMessageJS("DELETE_CONF")."')) ".$adminList->ActionDoGroup($arRes["ID"], "delete"),
+		"ACTION" => "if(confirm('".GetMessageJS("DELETE_CONF")."')) ".$lAdmin->ActionDoGroup($arRes["ID"], "delete"),
 	);
 	$row->AddActions($arActions);
 }
 
-$adminList->AddFooter(
+$lAdmin->AddFooter(
 	array(
 		array(
 			"title" => GetMessage("MAIN_ADMIN_LIST_SELECTED"),
@@ -96,14 +184,20 @@ $adminList->AddFooter(
 	)
 );
 
-$adminList->CheckListMode();
+$lAdmin->AddGroupActionTable(Array(
+	"delete" => GetMessage("MAIN_ADMIN_LIST_DELETE"),
+	//"set_y" => GetMessage("WEBDEBUG_CALLME_ADMINLIST_ACTION_SET_Y"),
+	//"set_n" => GetMessage("WEBDEBUG_CALLME_ADMINLIST_ACTION_SET_N"),
+));
+
+$lAdmin->CheckListMode();
 
 $APPLICATION->SetTitle(GetMessage("MY_STAT_ADMIN_TITLE"));
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_after.php");
 
 ?>
-	<form name="filter_form" method="GET" action="<?echo $APPLICATION->GetCurPage()?>?">
+	<form name="filter_form" method="GET" action="<?=$APPLICATION->GetCurPage()?>?">
 		<?
 		$oFilter = new CAdminFilter(
 			$listTableId."_filter",
@@ -115,14 +209,14 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_aft
 		$oFilter->Begin();
 		?>
 		<tr>
-			<td><b><?echo GetMessage("MY_STAT_ADMIN_FILTER_CREATED")?>:</b></td>
+			<td><b><?=GetMessage("MY_STAT_ADMIN_FILTER_CREATED")?>:</b></td>
 			<td nowrap>
-				<?echo CalendarPeriod("find_created_from", htmlspecialcharsex($find_created_from), "find_created_to", htmlspecialcharsex($find_created_to), "filter_form")?>
+				<?=CalendarPeriod("find_created_from", htmlspecialcharsex($find_created_from), "find_created_to", htmlspecialcharsex($find_created_to), "filter_form")?>
 			</td>
 		</tr>
 		<tr>
-			<td><?echo GetMessage("MY_STAT_ADMIN_FILTER_USER_ID")?>:</td>
-			<td><?echo FindUserID("find_user_id", $find_user_id, "", "filter_form", "5", "", " ... ", "", "");?></td>
+			<td><?=GetMessage("MY_STAT_ADMIN_FILTER_USER_ID")?>:</td>
+			<td><?=FindUserID("find_user_id", $find_user_id, "", "filter_form", "5", "", " ... ", "", "");?></td>
 		</tr>
 		<?
 		$oFilter->Buttons(
@@ -136,7 +230,7 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_aft
 		?>
 	</form>
 <?
-$adminList->DisplayList();
+$lAdmin->DisplayList();
 
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");
 ?>

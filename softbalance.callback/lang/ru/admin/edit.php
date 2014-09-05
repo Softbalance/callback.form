@@ -10,9 +10,9 @@ $MESS["TAB_NAME_TITLE"] = "Заказ звонка";
 $MESS["EDIT_ELEMENT"] = "Изменить звонок N#ID#";
 $MESS["ADD_ELEMENT"] = "Добавить звонок";
 
-$MESS["STATUS_NEW"] = "Новая";
-$MESS["STATUS_DIALING"] = "В обработке";
-$MESS["STATUS_COMPLETED"] = "Завершена";
+$MESS["SB_CALLBACK_STATUS_NEW"] = "Новая";
+$MESS["SB_CALLBACK_STATUS_DIALING"] = "В обработке";
+$MESS["SB_CALLBACK_STATUS_COMPLETED"] = "Завершена";
 
 $MESS["CALL_LIST"]="Список звонков";
 $MESS["CALL_LIST_TITLE"]="Другие звонки";

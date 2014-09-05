@@ -58,7 +58,7 @@ if($REQUEST_METHOD == "POST" &&	($_REQUEST["save"]!="" || $_REQUEST["apply"]!=""
 
 	if($result->isSuccess())
 	{
-		if($request["save"] <> '')
+		if($_REQUEST["save"] <> '')
 			LocalRedirect(BX_ROOT."/admin/softbalance_callback.php?lang=".LANGUAGE_ID);
 		else
 			LocalRedirect(BX_ROOT."/admin/softbalance_callback_edit.php?lang=".LANGUAGE_ID."&ID=".$ID."&".$tabControl->ActiveTabParam());
@@ -169,9 +169,9 @@ $tabControl->AddEditField("NAME", GetMessage("USER_NAME").":", true, array("size
 $tabControl->AddEditField("PHONE", GetMessage("USER_PHONE").":", true, array("size" => 63, "maxlength" => 255), $block["PHONE"]);
 
 $status = array(
-	"new" => GetMessage("STATUS_NEW"),
-	"dialing" => GetMessage("STATUS_DIALING"),
-	"completed" => GetMessage("STATUS_COMPLETED"),
+	"new" => GetMessage("SB_CALLBACK_STATUS_NEW"),
+	"dialing" => GetMessage("SB_CALLBACK_STATUS_DIALING"),
+	"completed" => GetMessage("SB_CALLBACK_STATUS_COMPLETED"),
 );
 
 $tabControl->BeginCustomField("field");
